@@ -1,0 +1,84 @@
+// Updated Prisma schema and seed.ts for a POS general shop system
+// The schema now focuses on Products, Sales, Inventory, and Staff
+
+// --- SCHEMA.PRISMA ---
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  CASHIER
+  ADMIN
+  MANAGER
+}
+
+model User {
+  id         String  @id @default(cuid())
+  name       String
+  email      String  @unique
+  password   String
+  role       Role    @default(CASHIER)
+  profilePic String?
+
+  sales       Sale[]
+  stockInputs StockInput[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Product {
+  id          String  @id @default(cuid())
+  name        String
+  sku         String  @unique
+  description String?
+  price       Float
+  stock       Int     @default(0)
+
+  saleItems   SaleItem[]
+  stockInputs StockInput[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Sale {
+  id        String  @id @default(cuid())
+  cashier   User    @relation(fields: [cashierId], references: [id])
+  cashierId String
+  total     Float
+  paid      Boolean @default(false)
+
+  items SaleItem[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model SaleItem {
+  id        String  @id @default(cuid())
+  sale      Sale    @relation(fields: [saleId], references: [id])
+  saleId    String
+  product   Product @relation(fields: [productId], references: [id], onDelete: NoAction)
+  productId String
+  quantity  Int
+  price     Float
+
+  createdAt DateTime @default(now())
+}
+
+model StockInput {
+  id        String  @id @default(cuid())
+  product   Product @relation(fields: [productId], references: [id])
+  productId String
+  quantity  Int
+  addedBy   User    @relation(fields: [addedById], references: [id])
+  addedById String
+
+  createdAt DateTime @default(now())
+}
