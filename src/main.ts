@@ -1,13 +1,14 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
-import { writeFileSync } from 'fs';
 import { ValidationPipe } from '@nestjs/common';
+import { writeFileSync } from 'fs';
+import { NextFunction, Request, Response } from 'express';
 
 async function bootstrap() {
   const PORT = process.env.PORT ?? 5000;
-
   const app = await NestFactory.create(AppModule);
+
   app.setGlobalPrefix('/api');
   app.useGlobalPipes(
     new ValidationPipe({
@@ -15,7 +16,7 @@ async function bootstrap() {
       forbidNonWhitelisted: false,
     }),
   );
-  // app.useWebSocketAdapter(new IoAdapter());
+
   app.enableCors({
     origin: '*',
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
@@ -23,25 +24,36 @@ async function bootstrap() {
     credentials: true,
   });
 
+  // Create Swagger config without server first
   const config = new DocumentBuilder()
     .setTitle('Shop POS')
     .setDescription('Shop POS API Documentation')
     .setVersion('0.0.1')
     .addBearerAuth()
-    .addServer(
-      process.env.NODE_ENV === 'production'
-        ? 'https://smartrestaurantapi.onrender.com'
-        : `http://localhost:${PORT}`,
-    )
     .build();
 
   const document = SwaggerModule.createDocument(app, config);
+
+  // Dynamic server URL in Swagger (use middleware)
+  app.use('/api-json', (req: Request, res: Response, next: NextFunction) => {
+    const host = req.headers.host;
+    const protocol = req.protocol;
+    const url = `${protocol}://${host}`;
+
+    const dynamicDoc = {
+      ...document,
+      servers: [{ url }],
+    };
+
+    res.json(dynamicDoc);
+  });
+
+  // Regular Swagger UI setup
   SwaggerModule.setup('api', app, document);
+
   writeFileSync('./swagger.json', JSON.stringify(document));
 
   await app.listen(PORT);
-  console.log(
-    `API Documentation is available on: http://localhost:${PORT}/api`,
-  );
+  console.log(`App running on: http://localhost:${PORT}/api`);
 }
 bootstrap();
