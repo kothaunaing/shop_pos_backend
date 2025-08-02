@@ -12,6 +12,8 @@ import { MulterModule } from '@nestjs/platform-express';
 import { memoryUsage } from 'process';
 import { SocketModule } from 'src/socket/socket.module';
 import { ProductModule } from 'src/product/product.module';
+import { StockInputModule } from './stock-input/stock-input.module';
+import { SaleModule } from './sale/sale.module';
 
 @Module({
   imports: [
@@ -25,6 +27,8 @@ import { ProductModule } from 'src/product/product.module';
     ImagekitModule,
     SocketModule,
     ProductModule,
+    StockInputModule,
+    SaleModule,
   ],
   controllers: [AppController],
   providers: [AppService],

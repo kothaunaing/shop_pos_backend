@@ -5,7 +5,7 @@ import * as bcrypt from 'bcryptjs';
 const prisma = new PrismaClient();
 
 async function main() {
-  // Users
+  // --- Create Users ---
   const admin = await prisma.user.create({
     data: {
       name: 'Admin',
@@ -26,7 +26,7 @@ async function main() {
     },
   });
 
-  // Products
+  // --- Create Products ---
   const products = await Promise.all(
     Array.from({ length: 10 }).map(() =>
       prisma.product.create({
@@ -34,14 +34,14 @@ async function main() {
           name: faker.commerce.productName(),
           sku: faker.string.uuid(),
           description: faker.commerce.productDescription(),
-          price: parseFloat(faker.commerce.price()),
+          price: parseFloat(faker.commerce.price({ min: 5, max: 100 })),
           stock: faker.number.int({ min: 10, max: 100 }),
         },
       }),
     ),
   );
 
-  // Sales
+  // --- Create Sales and SaleItems ---
   for (let i = 0; i < 5; i++) {
     const saleItems = faker.helpers.arrayElements(products, 3);
     let total = 0;
@@ -68,6 +68,12 @@ async function main() {
       });
 
       total += quantity * price;
+
+      // Optionally decrease stock
+      await prisma.product.update({
+        where: { id: product.id },
+        data: { stock: { decrement: quantity } },
+      });
     }
 
     await prisma.sale.update({
@@ -76,7 +82,7 @@ async function main() {
     });
   }
 
-  // Stock Inputs
+  // --- Create Stock Inputs ---
   for (let i = 0; i < 5; i++) {
     const product = faker.helpers.arrayElement(products);
     const quantity = faker.number.int({ min: 10, max: 50 });
@@ -87,6 +93,12 @@ async function main() {
         quantity,
         addedById: admin.id,
       },
+    });
+
+    // Optionally increase stock
+    await prisma.product.update({
+      where: { id: product.id },
+      data: { stock: { increment: quantity } },
     });
   }
 

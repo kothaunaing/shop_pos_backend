@@ -35,6 +35,7 @@ export class ProductService {
         description: dto.description,
         price: dto.price,
         stock: dto.stock,
+        category: dto.category,
       },
     });
 
@@ -59,10 +60,9 @@ export class ProductService {
         },
       ];
 
-    if (dto.minPrice) findData.price = { gt: dto.minPrice };
-    if (dto.maxPrice) findData.price = { lt: dto.maxPrice };
-    if (dto.minStock) findData.stock = { gt: dto.minStock };
-    if (dto.maxStock) findData.stock = { lt: dto.maxStock };
+    findData.price = { gt: dto.minPrice, lt: dto.maxPrice };
+    findData.stock = { gt: dto.minStock, lt: dto.maxStock };
+    if (dto.category) findData.category = dto.category;
 
     const [products, totalElements, total] = await this.prisma.$transaction([
       this.prisma.product.findMany({
@@ -129,7 +129,14 @@ export class ProductService {
 
     const updatedProduct = await this.prisma.product.update({
       where: { id },
-      data: dto,
+      data: {
+        name: dto.name,
+        description: dto.description,
+        category: dto.category,
+        price: dto.price,
+        stock: dto.stock,
+        sku: dto.sku,
+      },
     });
 
     return updatedProduct;

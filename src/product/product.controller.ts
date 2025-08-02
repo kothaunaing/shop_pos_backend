@@ -35,7 +35,10 @@ export class ProductController {
   constructor(private readonly productService: ProductService) {}
 
   @Post('')
-  @ApiOperation({ description: 'Create a product' })
+  @ApiOperation({
+    description: 'Create a product',
+    summary: 'Create a product',
+  })
   @ApiResponse({
     description: 'Return created product',
     example: {
@@ -57,7 +60,10 @@ export class ProductController {
   }
 
   @Get('')
-  @ApiOperation({ description: 'Find products with filters and pagination' })
+  @ApiOperation({
+    description: 'Find products with filters and pagination',
+    summary: 'Find products with filters and pagination',
+  })
   @ApiResponse({
     description: 'Return list of products with additional information',
     example: {
@@ -87,7 +93,10 @@ export class ProductController {
   }
 
   @Get(':id')
-  @ApiOperation({ description: 'Find a product by id or sku' })
+  @ApiOperation({
+    description: 'Find a product by id or sku',
+    summary: 'Find a product by id or sku',
+  })
   @ApiResponse({
     description: 'Return matched product',
     example: {
@@ -107,7 +116,10 @@ export class ProductController {
   }
 
   @Patch(':id')
-  @ApiOperation({ description: 'Update a product with id' })
+  @ApiOperation({
+    description: 'Update a product with id',
+    summary: 'Update a product with id',
+  })
   @ApiResponse({
     description: 'Return updated product',
     example: {
@@ -130,7 +142,10 @@ export class ProductController {
   }
 
   @Delete(':id')
-  @ApiOperation({ description: 'Delete a product by id' })
+  @ApiOperation({
+    description: 'Delete a product by id',
+    summary: 'Delete a product by id',
+  })
   @ApiResponse({
     description: 'Return deleted product',
     example: {

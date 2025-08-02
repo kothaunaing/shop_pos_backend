@@ -14,7 +14,6 @@ datasource db {
 enum Role {
   CASHIER
   ADMIN
-  MANAGER
 }
 
 model User {
@@ -33,18 +32,30 @@ model User {
 }
 
 model Product {
-  id          String  @id @default(cuid())
+  id          String          @id @default(cuid())
   name        String
-  sku         String  @unique
+  sku         String          @unique
   description String?
   price       Float
-  stock       Int     @default(0)
+  stock       Int             @default(0)
+  category    ProductCategory @default(OTHER)
 
   saleItems   SaleItem[]
   stockInputs StockInput[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+enum ProductCategory {
+  FOOD // Includes groceries, snacks, bakery, meat, dairy, etc.
+  DRINK // Water, soft drinks, juices, alcohol.
+  HOUSEHOLD // Cleaning supplies, kitchenware.
+  PERSONAL // Personal care, cosmetics, baby products.
+  ELECTRONICS // Gadgets, accessories, batteries.
+  CLOTHING // Apparel, footwear.
+  STATIONERY // Office and school supplies.
+  OTHER // For miscellaneous or uncategorized items.
 }
 
 model Sale {
@@ -70,6 +81,7 @@ model SaleItem {
   price     Float
 
   createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model StockInput {
@@ -81,4 +93,5 @@ model StockInput {
   addedById String
 
   createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
