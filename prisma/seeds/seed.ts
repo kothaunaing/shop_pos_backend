@@ -1,6 +1,7 @@
-import { PrismaClient, Role } from '@prisma/client';
+import { PrismaClient, ProductCategory, Role } from '@prisma/client';
 import { faker } from '@faker-js/faker';
 import * as bcrypt from 'bcryptjs';
+import { sampleProducts } from './constants';
 
 const prisma = new PrismaClient();
 
@@ -28,17 +29,11 @@ async function main() {
 
   // --- Create Products ---
   const products = await Promise.all(
-    Array.from({ length: 10 }).map(() =>
-      prisma.product.create({
-        data: {
-          name: faker.commerce.productName(),
-          sku: faker.string.uuid(),
-          description: faker.commerce.productDescription(),
-          price: parseFloat(faker.commerce.price({ min: 5, max: 100 })),
-          stock: faker.number.int({ min: 10, max: 100 }),
-        },
-      }),
-    ),
+    sampleProducts.map((product) => {
+      return prisma.product.create({
+        data: { ...product, category: product.category as ProductCategory },
+      });
+    }),
   );
 
   // --- Create Sales and SaleItems ---
