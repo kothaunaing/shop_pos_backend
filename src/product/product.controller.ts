@@ -92,6 +92,20 @@ export class ProductController {
     return this.productService.findAll(dto);
   }
 
+  @Get('categories')
+  @ApiOperation({
+    description: 'Get product categories',
+    summary: 'Get Product categories',
+  })
+  @ApiResponse({
+    description: 'Return product categories',
+
+    status: HttpStatus.OK,
+  })
+  getProductCategories() {
+    return this.productService.getProductCategories();
+  }
+
   @Get(':id')
   @ApiOperation({
     description: 'Find a product by id or sku',

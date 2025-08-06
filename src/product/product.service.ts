@@ -4,7 +4,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
+import { Prisma, ProductCategory } from '@prisma/client';
 import { isObjectEmpty } from 'src/common/utils/is-object.empty';
 import { PrismaService } from 'src/prisma/prisma.service';
 import {
@@ -90,6 +90,10 @@ export class ProductService {
       nextPage: hasNextPage ? page + 1 : null,
       results: products,
     };
+  }
+
+  getProductCategories() {
+    return Object.values(ProductCategory);
   }
 
   async findOne(id: string) {
