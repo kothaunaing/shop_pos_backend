@@ -22,6 +22,14 @@ export class CreateProductDto {
   @IsString()
   name: string;
 
+  @ApiPropertyOptional({
+    description: 'Url of the image',
+    example: '',
+  })
+  @IsString()
+  @IsOptional()
+  image?: string;
+
   @ApiProperty({
     description: 'Unique indentifier for a product',
     example: 'P0001',
@@ -132,6 +140,7 @@ export class FindProductDto {
 
 export const createProductSchema = yup.object({
   name: yup.string().required('Name is required'),
+  image: yup.string().optional(),
   sku: yup.string().required('SKU is required'),
   description: yup.string().optional(),
   price: yup
