@@ -1,0 +1,262 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Our Products</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      /* Custom styles */
+      body {
+        font-family: 'Inter', sans-serif;
+      }
+      /* Style for the category badge */
+      .category-badge {
+        font-size: 0.7rem;
+        padding: 0.2rem 0.6rem;
+      }
+      /* Add a subtle zoom effect on hover for product images */
+      .product-card:hover .product-image {
+        transform: scale(1.05);
+      }
+    </style>
+  </head>
+  <body class="bg-gray-50">
+    <!-- Header Section -->
+    <header class="bg-white shadow-sm">
+      <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <h1 class="text-4xl font-bold text-gray-800 text-center tracking-tight">
+          Discover Our Products
+        </h1>
+        <p class="text-center text-gray-500 mt-2">
+          A curated selection of high-quality goods for your everyday needs.
+        </p>
+      </div>
+    </header>
+
+    <!-- Main Content: Product Grid -->
+    <main class="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <div
+        id="product-grid"
+        class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-8"
+      >
+        <!-- Product cards will be injected here by JavaScript -->
+      </div>
+    </main>
+
+    <!-- Footer Section -->
+    <footer class="bg-white mt-12">
+      <div
+        class="container mx-auto px-4 sm:px-6 lg:px-8 py-6 text-center text-gray-500"
+      >
+        <p>&copy; 2025 Modern Goods Inc. All rights reserved.</p>
+      </div>
+    </footer>
+
+    <script>
+      // --- PRODUCT DATA ---
+      // This is the array of product objects.
+      const sampleProducts = [
+        {
+          name: 'Organic Apple',
+          sku: 'SKU1001',
+          description: 'Fresh organic red apple.',
+          price: 0.99,
+          stock: 150,
+          category: 'FOOD',
+          image:
+            'https://images.pexels.com/photos/102104/pexels-photo-102104.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2',
+        },
+        {
+          name: 'Whole Wheat Bread',
+          sku: 'SKU1002',
+          description: 'Healthy whole‑wheat loaf.',
+          price: 2.49,
+          stock: 75,
+          category: 'FOOD',
+          image:
+            'https://images.pexels.com/photos/1775043/pexels-photo-1775043.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2',
+        },
+        {
+          name: 'Milk 1L',
+          sku: 'SKU1003',
+          description: 'Dairy milk full cream 1L.',
+          price: 1.29,
+          stock: 200,
+          category: 'DRINK',
+          image:
+            'https://images.pexels.com/photos/248412/pexels-photo-248412.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2',
+        },
+        {
+          name: 'Orange Juice',
+          sku: 'SKU1004',
+          description: 'Fresh orange juice bottle.',
+          price: 3.99,
+          stock: 60,
+          category: 'DRINK',
+          image:
+            'https://images.pexels.com/photos/338713/pexels-photo-338713.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2',
+        },
+        {
+          name: 'Dish Soap',
+          sku: 'SKU1005',
+          description: 'Lemon‑scented dishwashing liquid.',
+          price: 1.99,
+          stock: 120,
+          category: 'HOUSEHOLD',
+          image:
+            'https://images.ctfassets.net/rpbo86nkmwf5/jS7NZzyhFMtzPnAz23V0y/0d388c40223242e629e96685b8129c4c/00037000976141_C1N1_8_oz.jpg?fm=jpg&fl=progressive',
+        },
+        {
+          name: 'Toothpaste Mint',
+          sku: 'SKU1006',
+          description: 'Mint flavored toothpaste tube.',
+          price: 2.79,
+          stock: 90,
+          category: 'PERSONAL',
+          image:
+            'https://i-cf65.ch-static.com/content/dam/cf-consumer-healthcare/sensodyne-v2/en_US/Product-pages/products/desktop/sensodyne-fresh-mint-toothpaste-thumb-01.jpg?auto=format',
+        },
+        {
+          name: 'AA Batteries 4-pack',
+          sku: 'SKU1007',
+          description: 'Pack of 4 AA batteries.',
+          price: 4.49,
+          stock: 140,
+          category: 'ELECTRONICS',
+          image:
+            'https://media.guitarcenter.com/is/image/MMGS7/424923000288000-00-600x600.jpg',
+        },
+        {
+          name: 'Cotton T‑Shirt',
+          sku: 'SKU1008',
+          description: 'Unisex cotton t‑shirt, size M.',
+          price: 9.99,
+          stock: 50,
+          category: 'CLOTHING',
+          image:
+            'https://content.josephturner.co.uk/Original/mens-cornflower-cotton-crew-neck-t-shirt-mtteesblu_1.jpg',
+        },
+        {
+          name: 'Ballpoint Pen Set',
+          sku: 'SKU1009',
+          description: 'Pack of 10 blue ink pens.',
+          price: 1.49,
+          stock: 300,
+          category: 'STATIONERY',
+          image:
+            'https://images-cdn.ubuy.co.in/634e49219d65e05f694f8fbe-metal-ballpoint-pen-set-black.jpg',
+        },
+        {
+          name: 'Cereal Box',
+          sku: 'SKU1010',
+          description: 'Breakfast cereal with honey.',
+          price: 3.29,
+          stock: 80,
+          category: 'FOOD',
+          image:
+            'https://packagingbee.com/wp-content/uploads/2023/11/Cereal-Box-Template.webp',
+        },
+      ];
+
+      // --- DOM MANIPULATION ---
+      // This function runs when the page loads.
+      document.addEventListener('DOMContentLoaded', () => {
+        const productGrid = document.getElementById('product-grid');
+        if (!productGrid) return;
+
+        // Generate the HTML for each product and add it to the grid.
+        productGrid.innerHTML = sampleProducts
+          .map((product) => createProductCard(product))
+          .join('');
+      });
+
+      // --- HELPER FUNCTIONS ---
+
+      /**
+       * Creates the HTML string for a single product card.
+       * @param {object} product - The product object.
+       * @returns {string} - The HTML string for the product card.
+       */
+      function createProductCard(product) {
+        const stockStatus = getStockStatus(product.stock);
+        const categoryStyle = getCategoryStyle(product.category);
+        const placeholderUrl = `https://placehold.co/400x400/e2e8f0/4a5568?text=${product.name.replace(/\s/g, '+')}`;
+
+        return `
+                <div class="product-card bg-white rounded-xl shadow-lg overflow-hidden flex flex-col transition-all duration-300 hover:shadow-2xl hover:-translate-y-1">
+                    <!-- Product Image Section -->
+                    <div class="relative overflow-hidden h-56">
+                        <img 
+                            src="${product.image}" 
+                            alt="${product.name}" 
+                            class="product-image w-full h-full object-cover transition-transform duration-500 ease-in-out"
+                            onerror="this.onerror=null;this.src='${placeholderUrl}';"
+                        >
+                        <div class="absolute top-3 right-3 ${categoryStyle.bg} ${categoryStyle.text} category-badge font-semibold rounded-full uppercase tracking-wider">${product.category}</div>
+                    </div>
+
+                    <!-- Product Details Section -->
+                    <div class="p-5 flex flex-col flex-grow">
+                        <h3 class="text-lg font-bold text-gray-800 truncate">${product.name}</h3>
+                        <p class="text-sm text-gray-500 mt-1 flex-grow">${product.description}</p>
+                        
+                        <!-- Stock and Price Section -->
+                        <div class="flex justify-between items-center mt-4">
+                            <span class="text-2xl font-bold text-gray-900">$${product.price.toFixed(2)}</span>
+                            <span class="text-sm font-medium ${stockStatus.color}">${stockStatus.text}</span>
+                        </div>
+
+                        <!-- Add to Cart Button -->
+                        <button class="w-full mt-5 bg-indigo-600 text-white font-semibold py-2.5 rounded-lg shadow-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:ring-opacity-75 transition-all duration-200">
+                            Add to Cart
+                        </button>
+                    </div>
+                </div>
+            `;
+      }
+
+      /**
+       * Determines the stock status text and color.
+       * @param {number} stock - The stock quantity.
+       * @returns {object} - An object with text and color class.
+       */
+      function getStockStatus(stock) {
+        if (stock > 50) {
+          return { text: 'In Stock', color: 'text-green-600' };
+        } else if (stock > 0) {
+          return { text: 'Low Stock', color: 'text-yellow-600' };
+        } else {
+          return { text: 'Out of Stock', color: 'text-red-600' };
+        }
+      }
+
+      /**
+       * Returns Tailwind CSS classes for different category badges.
+       * @param {string} category - The product category.
+       * @returns {object} - An object with background and text color classes.
+       */
+      function getCategoryStyle(category) {
+        const styles = {
+          FOOD: { bg: 'bg-green-100', text: 'text-green-800' },
+          DRINK: { bg: 'bg-blue-100', text: 'text-blue-800' },
+          HOUSEHOLD: { bg: 'bg-yellow-100', text: 'text-yellow-800' },
+          PERSONAL: { bg: 'bg-pink-100', text: 'text-pink-800' },
+          ELECTRONICS: { bg: 'bg-gray-200', text: 'text-gray-800' },
+          CLOTHING: { bg: 'bg-purple-100', text: 'text-purple-800' },
+          STATIONERY: { bg: 'bg-indigo-100', text: 'text-indigo-800' },
+          DEFAULT: { bg: 'bg-gray-100', text: 'text-gray-800' },
+        };
+        return styles[category.toUpperCase()] || styles.DEFAULT;
+      }
+    </script>
+  </body>
+</html>

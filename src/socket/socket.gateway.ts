@@ -1,8 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import {
+  ConnectedSocket,
+  MessageBody,
   OnGatewayConnection,
   OnGatewayDisconnect,
   OnGatewayInit,
+  SubscribeMessage,
   WebSocketGateway,
   WebSocketServer,
 } from '@nestjs/websockets';
@@ -85,5 +88,10 @@ export class SocketGateway
     this.clients.delete(userId);
     this.server.emit('connected-users', this.getClients()); // ✅ use server
     console.log(`User ${userId} disconnected with client id: ${client.id}`);
+  }
+
+  @SubscribeMessage('data-changes')
+  emitData(@MessageBody() data: any) {
+    this.server.emit('data-changes', data);
   }
 }
