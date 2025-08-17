@@ -98,18 +98,3 @@ Nest is an MIT-licensed open source project. It can grow thanks to the sponsors 
 Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
 
 ## Env
-
-```.env
-DATABASE_URL="postgresql://postgres:postgres@localhost:5432/smart_restaurant"
-JWT_SECRET="1G7JK&32Fjk"
-JWT_EXPIRES_IN="7d"
-PORT=3000
-IMAGE_KIT_PUBLIC_KEY="public_iqGhRnb7jBZwSOVX3Fmshaqb/1E="
-IMAGE_KIT_PRIVATE_KEY="private_UedKDdlpNJB7C1CVt5mvqJ/x4hw="
-IMAGE_KIT_URL_ENDPOINT="https://ik.imagekit.io/kothaunaing"
-```
-
-## Endpoints
-
-- Go to http://localhost:{PORT}/api-docs
-- Run `npm run save-swagger` to generate swagger.json
