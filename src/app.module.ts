@@ -14,6 +14,7 @@ import { SocketModule } from 'src/socket/socket.module';
 import { ProductModule } from 'src/product/product.module';
 import { StockInputModule } from './stock-input/stock-input.module';
 import { SaleModule } from './sale/sale.module';
+import { PaymentModule } from './payment/payment.module';
 
 @Module({
   imports: [
@@ -29,6 +30,7 @@ import { SaleModule } from './sale/sale.module';
     ProductModule,
     StockInputModule,
     SaleModule,
+    PaymentModule,
   ],
   controllers: [AppController],
   providers: [AppService],

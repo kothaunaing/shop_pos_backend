@@ -1,4 +1,4 @@
-import { Controller, Get, Query } from '@nestjs/common';
+import { Controller, Get, Query, UseGuards } from '@nestjs/common';
 import {
   ApiTags,
   ApiOperation,
@@ -9,6 +9,7 @@ import {
   ApiBearerAuth,
 } from '@nestjs/swagger';
 import { DashboardService } from './dashboard.service';
+import { AuthGuard } from 'src/auth/auth.guard';
 
 class DashboardStatsResponse {
   todayRevenue: number;
@@ -45,6 +46,7 @@ class LowStockItem {
 
 @ApiTags('Dashboard')
 @ApiBearerAuth()
+@UseGuards(AuthGuard)
 @Controller('dashboard')
 export class DashboardController {
   constructor(private readonly dashboardService: DashboardService) {}

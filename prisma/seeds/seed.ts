@@ -1,4 +1,4 @@
-import { PrismaClient, ProductCategory, Role } from '@prisma/client';
+import { PrismaClient, ProductCategory, Role, PaymentTypeEnum } from '@prisma/client';
 import { faker } from '@faker-js/faker';
 import * as bcrypt from 'bcryptjs';
 import { sampleProducts } from './constants';
@@ -27,6 +27,41 @@ async function main() {
     },
   });
 
+  // --- Create Payment Types ---
+  const paymentTypes = await Promise.all([
+    prisma.paymentType.create({
+      data: {
+        type: PaymentTypeEnum.Cash,
+        imageUrl: '/images/payment/cash.png',
+        isActive: true,
+      },
+    }),
+    prisma.paymentType.create({
+      data: {
+        type: PaymentTypeEnum.KPay,
+        imageUrl: '/images/payment/kpay.png',
+        isActive: true,
+      },
+    }),
+    prisma.paymentType.create({
+      data: {
+        type: PaymentTypeEnum.WavePay,
+        imageUrl: '/images/payment/wavepay.png',
+        isActive: true,
+      },
+    }),
+  ]);
+
+  const cashPayment = paymentTypes.find(pt => pt.type === PaymentTypeEnum.Cash);
+  const kpayPayment = paymentTypes.find(pt => pt.type === PaymentTypeEnum.KPay);
+  const wavepayPayment = paymentTypes.find(pt => pt.type === PaymentTypeEnum.WavePay);
+
+  // --- Create Payment QR Codes ---
+  // Note: PaymentQRCode model has been removed from the schema
+  // We'll only create payment types and handle sales with paymentTypeId
+  const kpayPaymentType = paymentTypes.find(pt => pt.type === PaymentTypeEnum.KPay);
+  const wavepayPaymentType = paymentTypes.find(pt => pt.type === PaymentTypeEnum.WavePay);
+
   // --- Create Products ---
   const products = await Promise.all(
     sampleProducts.map((product) => {
@@ -40,13 +75,23 @@ async function main() {
   for (let i = 0; i < 5; i++) {
     const saleItems = faker.helpers.arrayElements(products, 3);
     let total = 0;
+    
+    // Randomly select a payment type
+    const selectedPaymentType = faker.helpers.arrayElement([
+      { id: cashPayment!.id, type: PaymentTypeEnum.Cash },
+      { id: kpayPaymentType!.id, type: PaymentTypeEnum.KPay },
+      { id: wavepayPaymentType!.id, type: PaymentTypeEnum.WavePay }
+    ]);
+    
+    const saleData = {
+      cashierId: cashier.id,
+      total: 0,
+      paid: true,
+      paymentTypeId: selectedPaymentType.id,
+    };
 
     const sale = await prisma.sale.create({
-      data: {
-        cashierId: cashier.id,
-        total: 0,
-        paid: true,
-      },
+      data: saleData,
     });
 
     for (const product of saleItems) {

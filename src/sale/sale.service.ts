@@ -6,13 +6,22 @@ import {
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateSaleDto, FindSaleDto, UpdateSaleDto } from './dto/sale.dto';
 import { userSelect } from 'src/common/utils/includes-selects';
-import { Prisma } from '@prisma/client';
+import { Prisma, PaymentTypeEnum } from '@prisma/client';
 
 @Injectable()
 export class SaleService {
   constructor(private prisma: PrismaService) {}
 
   async create(createSaleDto: CreateSaleDto, cashierId: string) {
+    // Validate payment type exists
+    const paymentType = await this.prisma.paymentType.findUnique({
+      where: { type: createSaleDto.paymentType },
+    });
+
+    if (!paymentType) {
+      throw new BadRequestException('Invalid payment type');
+    }
+
     const productIds = createSaleDto.items.map((item) => item.productId);
 
     // Fetch all required products at once
@@ -52,15 +61,22 @@ export class SaleService {
 
     // Create sale and update stock in a transaction
     return this.prisma.$transaction(async (tx) => {
-      const sale = await tx.sale.create({
-        data: {
-          cashierId,
-          total,
-          paid: createSaleDto.paid || false,
-          items: {
-            create: saleItemsData,
-          },
+      const saleData: Prisma.SaleCreateInput = {
+        cashier: {
+          connect: { id: cashierId },
         },
+        total,
+        paid: paymentType.type === PaymentTypeEnum.Cash, // Mark as paid if cash payment
+        paymentType: {
+          connect: { type: createSaleDto.paymentType },
+        },
+        items: {
+          create: saleItemsData,
+        },
+      };
+
+      const sale = await tx.sale.create({
+        data: saleData,
         include: {
           items: {
             include: {
@@ -70,6 +86,7 @@ export class SaleService {
           cashier: {
             select: userSelect,
           },
+          paymentType: true,
         },
       });
 
@@ -117,6 +134,7 @@ export class SaleService {
               product: true,
             },
           },
+          paymentType: true,
           cashier: {
             select: {
               name: true,
@@ -156,6 +174,7 @@ export class SaleService {
             product: true,
           },
         },
+        paymentType: true,
         cashier: {
           select: userSelect,
         },
@@ -187,6 +206,7 @@ export class SaleService {
             product: true,
           },
         },
+        paymentType: true,
         cashier: {
           select: userSelect,
         },

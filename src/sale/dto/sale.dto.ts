@@ -13,6 +13,7 @@ import {
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import { SortDirection } from 'src/common/enums/index.enum';
+import { PaymentTypeEnum } from '@prisma/client';
 
 export enum SortBy {
   createdAt = 'createdAt',
@@ -41,6 +42,15 @@ export class CreateSaleDto {
   @IsBoolean()
   @IsOptional()
   paid?: boolean;
+
+  @ApiProperty({ 
+    description: 'Payment type', 
+    enum: PaymentTypeEnum,
+    required: true 
+  })
+  @IsEnum(PaymentTypeEnum)
+  @IsNotEmpty()
+  paymentType: PaymentTypeEnum;
 }
 
 export class UpdateSaleDto {
@@ -69,6 +79,14 @@ export class FindSaleDto {
   @IsOptional()
   @IsString()
   cashierId?: string;
+
+  @ApiPropertyOptional({ 
+    description: 'Filter by payment type',
+    enum: PaymentTypeEnum
+  })
+  @IsOptional()
+  @IsEnum(PaymentTypeEnum)
+  paymentType?: PaymentTypeEnum;
 
   @ApiPropertyOptional({ description: 'Minimum total amount' })
   @IsOptional()

@@ -61,16 +61,35 @@ enum ProductCategory {
 }
 
 model Sale {
-  id        String  @id @default(cuid())
-  cashier   User    @relation(fields: [cashierId], references: [id])
-  cashierId String
-  total     Float
-  paid      Boolean @default(false)
+  id            String      @id @default(cuid())
+  cashier       User        @relation(fields: [cashierId], references: [id])
+  cashierId     String
+  total         Float
+  paid          Boolean     @default(false)
+  paymentType   PaymentType @relation(fields: [paymentTypeId], references: [id])
+  paymentTypeId String
 
   items SaleItem[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+enum PaymentTypeEnum {
+  Cash
+  KPay
+  WavePay
+}
+
+model PaymentType {
+  id       String          @id @default(cuid())
+  type     PaymentTypeEnum @unique
+  imageUrl String?         @db.Text
+  isActive Boolean         @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  sales     Sale[]
 }
 
 model SaleItem {
