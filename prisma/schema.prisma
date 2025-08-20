@@ -66,7 +66,7 @@ model Sale {
   cashierId     String
   total         Float
   paid          Boolean     @default(false)
-  paymentType   PaymentType @relation(fields: [paymentTypeId], references: [id])
+  paymentType   PaymentType @relation(fields: [paymentTypeId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   paymentTypeId String
 
   items SaleItem[]
