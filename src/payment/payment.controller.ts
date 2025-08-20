@@ -21,14 +21,11 @@ import { CreateQRCodeDto } from './dto/create-qrcode.dto';
 import { UpdateQRCodeDto } from './dto/update-qrcode.dto';
 import { PaymentTypeEnum, Role } from '@prisma/client';
 import { AuthGuard } from 'src/auth/auth.guard';
-import { RolesGuard } from 'src/common/guards/roles.guard';
-import { Roles } from 'src/common/decorators/roles.decorator';
 
 @ApiTags('payment')
 @Controller('payment/types')
 @ApiBearerAuth()
-@UseGuards(AuthGuard, RolesGuard)
-@Roles(Role.ADMIN)
+@UseGuards(AuthGuard)
 export class PaymentController {
   constructor(private readonly paymentService: PaymentService) {}
 
