@@ -38,15 +38,15 @@ export class CreateSaleDto {
   @Type(() => SaleItemDto)
   items: SaleItemDto[];
 
-  @ApiProperty({ example: true, required: false, description: 'Paid or not' })
-  @IsBoolean()
-  @IsOptional()
-  paid?: boolean;
+  // @ApiProperty({ example: true, required: false, description: 'Paid or not' })
+  // @IsBoolean()
+  // @IsOptional()
+  // paid?: boolean;
 
-  @ApiProperty({ 
-    description: 'Payment type', 
+  @ApiProperty({
+    description: 'Payment type',
     enum: PaymentTypeEnum,
-    required: true 
+    required: true,
   })
   @IsEnum(PaymentTypeEnum)
   @IsNotEmpty()
@@ -58,6 +58,14 @@ export class UpdateSaleDto {
   @IsBoolean()
   @IsOptional()
   paid?: boolean;
+
+  @ApiProperty({
+    description: 'Payment type',
+    enum: PaymentTypeEnum,
+  })
+  @IsEnum(PaymentTypeEnum)
+  @IsOptional()
+  paymentType?: PaymentTypeEnum;
 }
 
 export class FindSaleDto {
@@ -80,9 +88,9 @@ export class FindSaleDto {
   @IsString()
   cashierId?: string;
 
-  @ApiPropertyOptional({ 
+  @ApiPropertyOptional({
     description: 'Filter by payment type',
-    enum: PaymentTypeEnum
+    enum: PaymentTypeEnum,
   })
   @IsOptional()
   @IsEnum(PaymentTypeEnum)

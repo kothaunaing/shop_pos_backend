@@ -66,7 +66,7 @@ export class SaleService {
           connect: { id: cashierId },
         },
         total,
-        paid: paymentType.type === PaymentTypeEnum.Cash, // Mark as paid if cash payment
+        paid: true, // Mark as paid if cash paymentf
         paymentType: {
           connect: { type: createSaleDto.paymentType },
         },
@@ -199,7 +199,14 @@ export class SaleService {
 
     return this.prisma.sale.update({
       where: { id },
-      data: updateSaleDto,
+      data: {
+        paid: updateSaleDto.paid,
+        paymentType: updateSaleDto.paymentType
+          ? {
+              update: { type: updateSaleDto.paymentType },
+            }
+          : undefined,
+      },
       include: {
         items: {
           include: {
