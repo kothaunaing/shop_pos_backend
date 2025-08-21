@@ -218,7 +218,7 @@ export class DashboardService {
       ...stockInputs.map((input) => ({
         id: `stock-${input.id}`,
         type: 'INVENTORY_UPDATED' as const,
-        description: `Stock updated: ${input.quantity} units of ${input.product.name} added by ${input.addedBy.name}`,
+        description: `Stock updated: ${input.quantity} units of ${input.product?.name} added by ${input.addedBy?.name}`,
         timestamp: input.createdAt,
         metadata: {
           productId: input.productId,
