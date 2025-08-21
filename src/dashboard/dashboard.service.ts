@@ -17,6 +17,7 @@ export class DashboardService {
       activeCashiers,
       totalRevenue,
       saleCount,
+      lowStockCount,
     ] = await Promise.all([
       // Today's revenue
       this.prisma.sale.aggregate({
@@ -39,7 +40,7 @@ export class DashboardService {
       this.prisma.user.count({
         where: {
           role: {
-            in: ['CASHIER', 'ADMIN']
+            in: ['CASHIER', 'ADMIN'],
           },
           sales: {
             some: {
@@ -59,11 +60,13 @@ export class DashboardService {
       this.prisma.sale.count({
         where: { paid: true },
       }),
+      this.prisma.product.count({ where: { stock: { lte: 10 } } }),
     ]);
 
-    const avgSaleValue = saleCount > 0 
-      ? Number((totalRevenue._sum.total || 0) / saleCount).toFixed(2)
-      : 0;
+    const avgSaleValue =
+      saleCount > 0
+        ? Number((totalRevenue._sum.total || 0) / saleCount).toFixed(2)
+        : 0;
 
     return {
       todayRevenue: Number(todaySales._sum.total || 0).toFixed(2),
@@ -71,13 +74,14 @@ export class DashboardService {
       totalProducts,
       activeUsers: activeCashiers,
       avgOrderValue: Number(avgSaleValue),
+      lowStockCount,
     };
   }
 
   async getSalesOverview() {
     const sevenDaysAgo = subDays(new Date(), 6);
     const startDate = startOfDay(sevenDaysAgo);
-    
+
     // Generate date range for the last 7 days
     const dateRange = Array.from({ length: 7 }, (_, i) => {
       const date = new Date(startDate);
@@ -107,7 +111,7 @@ export class DashboardService {
           date,
           revenue: Number(result._sum.total || 0).toFixed(2),
         };
-      })
+      }),
     );
 
     return salesData;
