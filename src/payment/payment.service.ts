@@ -57,17 +57,6 @@ export class PaymentService {
 
   async deletePaymentType(type: PaymentTypeEnum) {
     try {
-      // First check if there are any sales using this payment type
-      const salesCount = await this.prisma.sale.count({
-        where: { paymentTypeId: type },
-      });
-
-      if (salesCount > 0) {
-        throw new Error(
-          `Cannot delete payment type ${type} as it is being used by ${salesCount} sales`,
-        );
-      }
-
       return await this.prisma.paymentType.delete({
         where: { type },
       });
@@ -83,7 +72,7 @@ export class PaymentService {
 
   async getAllPaymentTypes(includeInactive = false) {
     const where: Prisma.PaymentTypeWhereInput = {};
-    
+
     if (!includeInactive) {
       where.isActive = true;
     }

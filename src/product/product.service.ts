@@ -2,6 +2,7 @@ import {
   BadRequestException,
   ConflictException,
   Injectable,
+  InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
 import { Prisma, ProductCategory } from '@prisma/client';
@@ -149,16 +150,26 @@ export class ProductService {
   }
 
   async delete(id: string) {
-    const product = await this.prisma.product.findFirst({
-      where: { id },
-      select: { id: true },
-    });
+    try {
+      const product = await this.prisma.product.findFirst({
+        where: { id },
+        select: { id: true },
+      });
 
-    if (!product)
-      throw new NotFoundException('No product found to delete with id: ' + id);
+      if (!product)
+        throw new NotFoundException(
+          'No product found to delete with id: ' + id,
+        );
 
-    const deletedProduct = await this.prisma.product.delete({ where: { id } });
+      const deletedProduct = await this.prisma.product.delete({
+        where: { id },
+      });
 
-    return deletedProduct;
+      return deletedProduct;
+    } catch (error: any) {
+      throw new InternalServerErrorException(
+        'Error deleting product with id: ' + id,
+      );
+    }
   }
 }

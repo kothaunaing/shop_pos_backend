@@ -61,13 +61,13 @@ enum ProductCategory {
 }
 
 model Sale {
-  id            String      @id @default(cuid())
-  cashier       User        @relation(fields: [cashierId], references: [id], onDelete: SetNull)
+  id            String       @id @default(cuid())
+  cashier       User         @relation(fields: [cashierId], references: [id])
   cashierId     String
   total         Float
-  paid          Boolean     @default(false)
-  paymentType   PaymentType @relation(fields: [paymentTypeId], references: [id], onDelete: SetNull, onUpdate: NoAction)
-  paymentTypeId String
+  paid          Boolean      @default(false)
+  paymentType   PaymentType? @relation(fields: [paymentTypeId], references: [id], onDelete: SetNull)
+  paymentTypeId String?
 
   items SaleItem[]
 
@@ -93,11 +93,11 @@ model PaymentType {
 }
 
 model SaleItem {
-  id        String  @id @default(cuid())
-  sale      Sale    @relation(fields: [saleId], references: [id], onDelete: SetNull)
-  saleId    String
-  product   Product @relation(fields: [productId], references: [id], onDelete: SetNull)
-  productId String
+  id        String   @id @default(cuid())
+  sale      Sale?    @relation(fields: [saleId], references: [id], onDelete: SetNull)
+  saleId    String?
+  product   Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
+  productId String?
   quantity  Int
   price     Float
 
@@ -106,12 +106,12 @@ model SaleItem {
 }
 
 model StockInput {
-  id        String  @id @default(cuid())
-  product   Product @relation(fields: [productId], references: [id], onDelete: SetNull)
-  productId String
+  id        String   @id @default(cuid())
+  product   Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
+  productId String?
   quantity  Int
-  addedBy   User    @relation(fields: [addedById], references: [id], onDelete: SetNull)
-  addedById String
+  addedBy   User?    @relation(fields: [addedById], references: [id], onDelete: SetNull)
+  addedById String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
