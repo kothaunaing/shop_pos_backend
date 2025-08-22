@@ -50,12 +50,17 @@ model Product {
 }
 
 enum ProductCategory {
-  FOOD // Includes groceries, snacks, bakery, meat, dairy, etc.
+  ACCESSORIES
+  CLOTHING // Apparel, footwear.
+  COSMETICS
   DRINK // Water, soft drinks, juices, alcohol.
+  FOOD // Includes groceries, snacks, bakery, meat, dairy, etc.
+  GROCERY
   HOUSEHOLD // Cleaning supplies, kitchenware.
+  PHARMACEUTICAL
+  SNACK
   PERSONAL // Personal care, cosmetics, baby products.
   ELECTRONICS // Gadgets, accessories, batteries.
-  CLOTHING // Apparel, footwear.
   STATIONERY // Office and school supplies.
   OTHER // For miscellaneous or uncategorized items.
 }
