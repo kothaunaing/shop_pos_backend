@@ -1,4 +1,9 @@
-import { PrismaClient, ProductCategory, Role, PaymentTypeEnum } from '@prisma/client';
+import {
+  PrismaClient,
+  ProductCategory,
+  Role,
+  PaymentTypeEnum,
+} from '@prisma/client';
 import { faker } from '@faker-js/faker';
 import * as bcrypt from 'bcryptjs';
 import { sampleProducts } from './constants';
@@ -13,7 +18,7 @@ async function main() {
       email: 'admin@shop.com',
       password: await bcrypt.hash('admin', 10),
       role: Role.ADMIN,
-      profilePic: faker.image.avatar(),
+      profilePic: null,
     },
   });
 
@@ -23,7 +28,7 @@ async function main() {
       email: 'cashier@shop.com',
       password: await bcrypt.hash('cashier', 10),
       role: Role.CASHIER,
-      profilePic: faker.image.avatar(),
+      profilePic: null,
     },
   });
 
@@ -52,15 +57,25 @@ async function main() {
     }),
   ]);
 
-  const cashPayment = paymentTypes.find(pt => pt.type === PaymentTypeEnum.Cash);
-  const kpayPayment = paymentTypes.find(pt => pt.type === PaymentTypeEnum.KPay);
-  const wavepayPayment = paymentTypes.find(pt => pt.type === PaymentTypeEnum.WavePay);
+  const cashPayment = paymentTypes.find(
+    (pt) => pt.type === PaymentTypeEnum.Cash,
+  );
+  const kpayPayment = paymentTypes.find(
+    (pt) => pt.type === PaymentTypeEnum.KPay,
+  );
+  const wavepayPayment = paymentTypes.find(
+    (pt) => pt.type === PaymentTypeEnum.WavePay,
+  );
 
   // --- Create Payment QR Codes ---
   // Note: PaymentQRCode model has been removed from the schema
   // We'll only create payment types and handle sales with paymentTypeId
-  const kpayPaymentType = paymentTypes.find(pt => pt.type === PaymentTypeEnum.KPay);
-  const wavepayPaymentType = paymentTypes.find(pt => pt.type === PaymentTypeEnum.WavePay);
+  const kpayPaymentType = paymentTypes.find(
+    (pt) => pt.type === PaymentTypeEnum.KPay,
+  );
+  const wavepayPaymentType = paymentTypes.find(
+    (pt) => pt.type === PaymentTypeEnum.WavePay,
+  );
 
   // --- Create Products ---
   const products = await Promise.all(
@@ -75,14 +90,14 @@ async function main() {
   for (let i = 0; i < 5; i++) {
     const saleItems = faker.helpers.arrayElements(products, 3);
     let total = 0;
-    
+
     // Randomly select a payment type
     const selectedPaymentType = faker.helpers.arrayElement([
       { id: cashPayment!.id, type: PaymentTypeEnum.Cash },
       { id: kpayPaymentType!.id, type: PaymentTypeEnum.KPay },
-      { id: wavepayPaymentType!.id, type: PaymentTypeEnum.WavePay }
+      { id: wavepayPaymentType!.id, type: PaymentTypeEnum.WavePay },
     ]);
-    
+
     const saleData = {
       cashierId: cashier.id,
       total: 0,
