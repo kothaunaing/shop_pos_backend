@@ -38,6 +38,7 @@ export class ProductService {
         price: dto.price,
         stock: dto.stock,
         category: dto.category,
+        import_price: dto.import_price,
       },
     });
 
@@ -143,6 +144,7 @@ export class ProductService {
         price: dto.price,
         stock: dto.stock,
         sku: dto.sku,
+        import_price: dto.import_price,
       },
     });
 

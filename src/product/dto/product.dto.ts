@@ -49,6 +49,11 @@ export class CreateProductDto {
   @IsNumber()
   price: number;
 
+  @ApiProperty({ description: 'Import Price of the product', example: 10 })
+  @IsOptional()
+  @IsNumber()
+  import_price?: number;
+
   @ApiPropertyOptional({
     description: 'Number of items in the stock (optional)',
     default: 0,
@@ -147,6 +152,7 @@ export const createProductSchema = yup.object({
     .number()
     .typeError('Price must be a number')
     .required('Price is required'),
+  import_price: yup.number().typeError('Price must be a number'),
   stock: yup.number().typeError('Stock must be a number').optional(),
   category: yup.string().oneOf(Object.values(ProductCategory)).optional(),
 });
