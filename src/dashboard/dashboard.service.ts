@@ -1,6 +1,16 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { startOfDay, endOfDay, subDays, format } from 'date-fns';
+import {
+  startOfDay,
+  endOfDay,
+  subDays,
+  format,
+  startOfMonth,
+  endOfMonth,
+  subMonths,
+  eachDayOfInterval,
+  eachMonthOfInterval,
+} from 'date-fns';
 
 @Injectable()
 export class DashboardService {
@@ -110,6 +120,177 @@ export class DashboardService {
         return {
           date,
           revenue: Number(result._sum.total || 0).toFixed(2),
+        };
+      }),
+    );
+
+    return salesData;
+  }
+
+  // New method: Get daily revenue and transactions for a specific month
+  async getDailyStatsForMonth(year: number, month: number) {
+    const startDate = new Date(year, month - 1, 1);
+    const endDate = new Date(year, month, 0); // Last day of the month
+
+    const daysInMonth = eachDayOfInterval({
+      start: startDate,
+      end: endDate,
+    });
+
+    const dailyStats = await Promise.all(
+      daysInMonth.map(async (day) => {
+        const dayStart = startOfDay(day);
+        const dayEnd = endOfDay(day);
+        const dateStr = format(day, 'yyyy-MM-dd');
+
+        const [revenueResult, transactionCount] = await Promise.all([
+          // Revenue for the day
+          this.prisma.sale.aggregate({
+            _sum: { total: true },
+            where: {
+              paid: true,
+              createdAt: {
+                gte: dayStart,
+                lte: dayEnd,
+              },
+            },
+          }),
+          // Transaction count for the day
+          this.prisma.sale.count({
+            where: {
+              paid: true,
+              createdAt: {
+                gte: dayStart,
+                lte: dayEnd,
+              },
+            },
+          }),
+        ]);
+
+        return {
+          date: dateStr,
+          revenue: Number(revenueResult._sum.total || 0),
+          transactions: transactionCount,
+        };
+      }),
+    );
+
+    return dailyStats;
+  }
+
+  // New method: Get monthly revenue and transactions for a specific year
+  async getMonthlyStatsForYear(year: number) {
+    const startDate = new Date(year, 0, 1); // January 1st
+    const endDate = new Date(year, 11, 31); // December 31st
+
+    const monthsInYear = eachMonthOfInterval({
+      start: startDate,
+      end: endDate,
+    });
+
+    const monthlyStats = await Promise.all(
+      monthsInYear.map(async (month) => {
+        const monthStart = startOfMonth(month);
+        const monthEnd = endOfMonth(month);
+        const monthStr = format(month, 'yyyy-MM');
+
+        const [revenueResult, transactionCount] = await Promise.all([
+          // Revenue for the month
+          this.prisma.sale.aggregate({
+            _sum: { total: true },
+            where: {
+              paid: true,
+              createdAt: {
+                gte: monthStart,
+                lte: monthEnd,
+              },
+            },
+          }),
+          // Transaction count for the month
+          this.prisma.sale.count({
+            where: {
+              paid: true,
+              createdAt: {
+                gte: monthStart,
+                lte: monthEnd,
+              },
+            },
+          }),
+        ]);
+
+        return {
+          month: monthStr,
+          revenue: Number(revenueResult._sum.total || 0),
+          transactions: transactionCount,
+        };
+      }),
+    );
+
+    return monthlyStats;
+  }
+
+  // New method: Get combined daily and monthly stats for current period
+  async getRevenueAndTransactionStats() {
+    const currentDate = new Date();
+    const currentYear = currentDate.getFullYear();
+    const currentMonth = currentDate.getMonth() + 1;
+
+    const [dailyStats, monthlyStats] = await Promise.all([
+      this.getDailyStatsForMonth(currentYear, currentMonth),
+      this.getMonthlyStatsForYear(currentYear),
+    ]);
+
+    return {
+      daily: dailyStats,
+      monthly: monthlyStats,
+    };
+  }
+
+  // Updated method to include transaction count in sales overview
+  async getSalesOverviewWithTransactions() {
+    const sevenDaysAgo = subDays(new Date(), 6);
+    const startDate = startOfDay(sevenDaysAgo);
+
+    // Generate date range for the last 7 days
+    const dateRange = Array.from({ length: 7 }, (_, i) => {
+      const date = new Date(startDate);
+      date.setDate(date.getDate() + i);
+      return {
+        date: format(date, 'yyyy-MM-dd'),
+        start: startOfDay(date),
+        end: endOfDay(date),
+      };
+    });
+
+    // Get sales data for each day including transaction count
+    const salesData = await Promise.all(
+      dateRange.map(async ({ date, start, end }) => {
+        const [revenueResult, transactionCount] = await Promise.all([
+          this.prisma.sale.aggregate({
+            _sum: { total: true },
+            where: {
+              paid: true,
+              createdAt: {
+                gte: start,
+                lte: end,
+              },
+            },
+          }),
+          this.prisma.sale.count({
+            where: {
+              paid: true,
+              createdAt: {
+                gte: start,
+                lte: end,
+              },
+            },
+          }),
+        ]);
+
+        return {
+          date,
+          revenue: Number(revenueResult._sum.total || 0).toFixed(2),
+          transactions: transactionCount,
         };
       }),
     );
