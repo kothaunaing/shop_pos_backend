@@ -5,5 +5,6 @@ import { ImagekitController } from './imagekit.controller';
 @Module({
   controllers: [ImagekitController],
   providers: [ImagekitService],
+  exports: [ImagekitService],
 })
 export class ImagekitModule {}
