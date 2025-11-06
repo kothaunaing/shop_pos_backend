@@ -28,9 +28,10 @@ model User {
   sales       Sale[]
   stockInputs StockInput[]
 
-  createdAt  DateTime     @default(now())
-  updatedAt  DateTime     @updatedAt
-  MoneyInOut MoneyInOut[]
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  MoneyInOut   MoneyInOut[]
+  RevenueRules RevenueRules[]
 }
 
 model Product {
@@ -144,6 +145,32 @@ model MoneyInOut {
 
   addedBy       User   @relation(fields: [addedByUserId], references: [id])
   addedByUserId String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum Operator {
+  GT
+  LT
+  EQ
+  GTE
+  LTE
+  BETWEEN
+}
+
+model RevenueRules {
+  id          String           @id @default(cuid())
+  name        String?
+  operator    Operator
+  value       Float
+  secondValue Float?
+  percentage  Float
+  serviceType MoneyServiceType @default(KPay)
+  inOutType   InOutType
+
+  createdBy User   @relation(fields: [userId], references: [id])
+  userId    String
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

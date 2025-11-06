@@ -7,6 +7,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { CreateMoneyInoutDto } from './money-inout.dto';
 import { InOutType, MoneyServiceType, Prisma } from '@prisma/client';
 import { ImagekitService } from 'src/imagekit/imagekit.service';
+import { RevenueRulesService } from 'src/revenue-rules/revenue-rules.service';
 
 interface MoneyInoutStats {
   totalIn: number;
@@ -53,6 +54,7 @@ export class MoneyInoutService {
   constructor(
     private prisma: PrismaService,
     private imageKit: ImagekitService,
+    private ruleService: RevenueRulesService,
   ) {}
 
   async createMoneyInout(
@@ -63,9 +65,10 @@ export class MoneyInoutService {
     try {
       const uploadResult = await this.imageKit.uploadFile(file);
 
-      const revenue = this.calculateRevenue(
+      const revenue = await this.ruleService.calculateRevenue(
         createMoneyInoutDto.quantity,
         createMoneyInoutDto.type,
+        createMoneyInoutDto.serviceType,
       );
 
       const moneyInout = await this.prisma.moneyInOut.create({
@@ -99,8 +102,8 @@ export class MoneyInoutService {
   async getAllMoneyInouts(
     page: number = 1,
     limit: number = 10,
-    type?: string,
-    serviceType?: string,
+    type?: InOutType,
+    serviceType?: MoneyServiceType,
     startDate?: string,
     endDate?: string,
   ) {
@@ -243,6 +246,118 @@ export class MoneyInoutService {
       dailyAverages,
     };
   }
+  async getFilteredStats(filters: {
+    type?: InOutType;
+    serviceType?: MoneyServiceType;
+    startDate?: string;
+    endDate?: string;
+  }) {
+    const where: Prisma.MoneyInOutWhereInput = {};
+
+    // Date range filter
+    if (filters.startDate || filters.endDate) {
+      where.createdAt = {};
+      if (filters.startDate) {
+        where.createdAt.gte = new Date(filters.startDate);
+      }
+      if (filters.endDate) {
+        where.createdAt.lte = new Date(filters.endDate);
+      }
+    }
+
+    // Type filter (IN/OUT)
+    if (filters.type) {
+      where.type = filters.type;
+    }
+
+    // Service Type filter - KPay or WavePay
+    if (filters.serviceType) {
+      where.serviceType = filters.serviceType;
+    }
+
+    const [
+      totalInResult,
+      totalOutResult,
+      totalRevenueResult,
+      totalTransactions,
+      serviceTypeBreakdown,
+    ] = await Promise.all([
+      // Total IN (respects serviceType and date filters, but not type filter for IN calculation)
+      this.prisma.moneyInOut.aggregate({
+        where: {
+          ...where,
+          // Remove type filter for IN calculation to get all IN transactions
+
+          type: InOutType.IN,
+          serviceType: filters.serviceType,
+        },
+        _sum: { quantity: true },
+      }),
+      // Total OUT (respects serviceType and date filters, but not type filter for OUT calculation)
+      this.prisma.moneyInOut.aggregate({
+        where: {
+          ...where,
+          // Remove type filter for OUT calculation to get all OUT transactions
+
+          type: InOutType.OUT,
+          serviceType: filters.serviceType,
+        },
+        _sum: { quantity: true },
+      }),
+      // Total Revenue (respects all filters)
+      this.prisma.moneyInOut.aggregate({
+        where,
+        _sum: { revenue: true },
+      }),
+      // Total Transactions (respects all filters)
+      this.prisma.moneyInOut.count({ where }),
+      // Service Type Breakdown (respects all filters)
+      this.prisma.moneyInOut.groupBy({
+        by: ['serviceType'],
+        where,
+        _count: { _all: true },
+        _sum: { quantity: true, revenue: true },
+      }),
+    ]);
+
+    const totalIn = totalInResult._sum.quantity || 0;
+    const totalOut = totalOutResult._sum.quantity || 0;
+    const totalRevenue = totalRevenueResult._sum.revenue || 0;
+    const totalTransactionsCount = totalTransactions;
+    const averageTransaction =
+      totalTransactionsCount > 0
+        ? (totalIn + totalOut) / totalTransactionsCount
+        : 0;
+    const inOutRatio = totalOut > 0 ? totalIn / totalOut : 0;
+
+    // Calculate daily averages
+    const dateRangeDays = this.calculateDateRangeDays(
+      filters.startDate,
+      filters.endDate,
+    );
+    const dailyAverages = {
+      averageIn: totalIn / dateRangeDays,
+      averageOut: totalOut / dateRangeDays,
+      averageRevenue: totalRevenue / dateRangeDays,
+    };
+
+    return {
+      totalIn,
+      totalOut,
+      totalRevenue,
+      totalTransactions: totalTransactionsCount,
+      averageTransaction,
+      inOutRatio: parseFloat(inOutRatio.toFixed(2)),
+      serviceTypeBreakdown: serviceTypeBreakdown.map((item) => ({
+        serviceType: item.serviceType,
+        count: item._count._all,
+        totalAmount: item._sum.quantity || 0,
+        totalRevenue: item._sum.revenue || 0,
+      })),
+      dailyAverages,
+      filters, // Optionally include applied filters in response
+    };
+  }
 
   async getDetailedMoneyInoutStats(
     startDate?: string,
@@ -309,16 +424,23 @@ export class MoneyInoutService {
   async getAdminOverview(
     page: number = 1,
     limit: number = 10,
+    type?: InOutType,
+    serviceType?: MoneyServiceType,
     startDate?: string,
     endDate?: string,
   ): Promise<AdminOverview> {
     const [stats, recentTransactionsData] = await Promise.all([
-      this.getMoneyInoutStats(startDate, endDate),
+      this.getFilteredStats({
+        type,
+        serviceType,
+        endDate,
+        startDate,
+      }),
       this.getAllMoneyInouts(
         page,
         limit,
-        undefined,
-        undefined,
+        type,
+        serviceType,
         startDate,
         endDate,
       ),
@@ -374,14 +496,14 @@ export class MoneyInoutService {
     });
   }
 
-  private calculateRevenue(quantity: number, type: InOutType): number {
-    if (type === InOutType.IN) {
-      return quantity * 0;
-    } else {
-      const percentage = quantity >= 400000 ? 0.05 : 0.01;
-      return quantity * percentage;
-    }
-  }
+  // private calculateRevenue(quantity: number, type: InOutType): number {
+  //   if (type === InOutType.IN) {
+  //     return quantity * 0;
+  //   } else {
+  //     const percentage = quantity >= 400000 ? 0.05 : 0.01;
+  //     return quantity * percentage;
+  //   }
+  // }
 
   private toResponseDto(moneyInout: any) {
     return {

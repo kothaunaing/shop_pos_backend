@@ -16,6 +16,7 @@ import { StockInputModule } from './stock-input/stock-input.module';
 import { SaleModule } from './sale/sale.module';
 import { PaymentModule } from './payment/payment.module';
 import { MoneyInoutModule } from './money-inout/money-inout.module';
+import { RevenueRulesModule } from './revenue-rules/revenue-rules.module';
 
 @Module({
   imports: [
@@ -33,6 +34,7 @@ import { MoneyInoutModule } from './money-inout/money-inout.module';
     SaleModule,
     PaymentModule,
     MoneyInoutModule,
+    RevenueRulesModule,
   ],
   controllers: [AppController],
   providers: [AppService],

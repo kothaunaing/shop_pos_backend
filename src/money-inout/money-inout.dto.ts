@@ -85,7 +85,7 @@ export class GetAllMoneyInoutsParamsDto {
   @IsOptional()
   @IsString()
   @IsEnum(InOutType)
-  type?: InOutType = InOutType.OUT;
+  type?: InOutType;
 
   @ApiPropertyOptional({
     description: 'Service type',
@@ -95,7 +95,7 @@ export class GetAllMoneyInoutsParamsDto {
   @IsOptional()
   @IsString()
   @IsEnum(MoneyServiceType)
-  serviceType?: MoneyServiceType = MoneyServiceType.KPay;
+  serviceType?: MoneyServiceType;
 
   @ApiPropertyOptional({
     description: 'Start date for filtering (ISO format)',

@@ -34,7 +34,7 @@ import {
   GetAllMoneyInoutsParamsDto,
 } from './money-inout.dto';
 
-@ApiTags('money-inout')
+@ApiTags('Money In/Out')
 @ApiBearerAuth()
 @Controller('money-inout')
 @UseGuards(AuthGuard)
@@ -132,13 +132,17 @@ export class MoneyInoutController {
     status: 200,
     description: 'Admin overview with stats and records',
   })
-  async getAdminOverview(@Query() query: AdminOverviewQueryDto): Promise<any> {
+  async getAdminOverview(
+    @Query() query: GetAllMoneyInoutsParamsDto,
+  ): Promise<any> {
     const parsedPage = parseInt(query.page!) || 1;
-    const parsedSize = parseInt(query.limit!) || 10;
+    const parsedSize = parseInt(query.size!) || 10;
 
     return this.moneyInoutService.getAdminOverview(
       parsedPage,
       parsedSize,
+      query.type,
+      query.serviceType,
       query.startDate,
       query.endDate,
     );
