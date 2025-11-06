@@ -112,15 +112,74 @@ export class SaleService {
 
     const whereClause: Prisma.SaleWhereInput = {};
 
+    // 💰 Cashier filter
     if (dto.cashierId) {
       whereClause.cashierId = dto.cashierId;
     }
 
+    // 💵 Total range filter
     if (dto.minTotal !== undefined || dto.maxTotal !== undefined) {
       whereClause.total = {
         ...(dto.minTotal !== undefined ? { gte: dto.minTotal } : {}),
         ...(dto.maxTotal !== undefined ? { lte: dto.maxTotal } : {}),
       };
+    }
+
+    // 🗓️ Date filtering
+    if (dto.filterBy) {
+      let gte: Date | undefined = undefined;
+      let lte: Date | undefined = undefined;
+      const now = new Date();
+
+      switch (dto.filterBy) {
+        case 'today':
+          gte = new Date();
+          gte.setHours(0, 0, 0, 0);
+          lte = new Date();
+          lte.setHours(23, 59, 59, 999);
+          break;
+
+        case 'month': {
+          const year = dto.year ?? now.getFullYear();
+          const month = dto.month ?? now.getMonth() + 1;
+          gte = new Date(year, month - 1, 1);
+          lte = new Date(year, month, 0, 23, 59, 59, 999);
+          break;
+        }
+
+        case 'week': {
+          const year = dto.year ?? now.getFullYear();
+          const month = dto.month ?? now.getMonth() + 1;
+          const week = dto.week ?? 1;
+
+          const startDay = (week - 1) * 7 + 1;
+          const lastDayOfMonth = new Date(year, month, 0).getDate();
+          const endDay = Math.min(week * 7, lastDayOfMonth);
+
+          gte = new Date(year, month - 1, startDay, 0, 0, 0, 0);
+          lte = new Date(year, month - 1, endDay, 23, 59, 59, 999);
+          break;
+        }
+
+        case 'custom': {
+          if (dto.startDate) {
+            gte = new Date(dto.startDate);
+            gte.setHours(0, 0, 0, 0);
+          }
+          if (dto.endDate) {
+            lte = new Date(dto.endDate);
+            lte.setHours(23, 59, 59, 999);
+          }
+          break;
+        }
+      }
+
+      if (gte || lte) {
+        whereClause.createdAt = {
+          ...(gte ? { gte } : {}),
+          ...(lte ? { lte } : {}),
+        };
+      }
     }
 
     const [sales, totalElements, total] = await this.prisma.$transaction([
@@ -129,17 +188,10 @@ export class SaleService {
         skip,
         where: whereClause,
         include: {
-          items: {
-            include: {
-              product: true,
-            },
-          },
+          items: { include: { product: true } },
           paymentType: true,
           cashier: {
-            select: {
-              name: true,
-              email: true,
-            },
+            select: { name: true, email: true },
           },
         },
         orderBy: {

@@ -125,4 +125,42 @@ export class FindSaleDto {
   @IsOptional()
   @IsEnum(SortDirection)
   sortDirection: SortDirection = SortDirection.DESC;
+
+  // 🗓️ Date filtering
+  @ApiPropertyOptional({
+    description: 'Filter by date type: today, month, week, or custom range',
+    enum: ['today', 'month', 'week', 'custom'],
+  })
+  @IsOptional()
+  @IsString()
+  filterBy?: 'today' | 'month' | 'week' | 'custom';
+
+  @ApiPropertyOptional({ description: 'Year for month/week filter' })
+  @IsOptional()
+  @Type(() => Number)
+  year?: number;
+
+  @ApiPropertyOptional({ description: 'Month (1–12) for month/week filter' })
+  @IsOptional()
+  @Type(() => Number)
+  month?: number;
+
+  @ApiPropertyOptional({ description: 'Week number (1–5) in the month' })
+  @IsOptional()
+  @Type(() => Number)
+  week?: number;
+
+  @ApiPropertyOptional({
+    description: 'Start date for custom date range (YYYY-MM-DD)',
+  })
+  @IsOptional()
+  @Type(() => Date)
+  startDate?: Date;
+
+  @ApiPropertyOptional({
+    description: 'End date for custom date range (YYYY-MM-DD)',
+  })
+  @IsOptional()
+  @Type(() => Date)
+  endDate?: Date;
 }
