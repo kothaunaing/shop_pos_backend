@@ -104,7 +104,6 @@ export class SaleService {
       return sale;
     });
   }
-
   async findAll(dto: FindSaleDto) {
     const page = dto.page;
     const size = dto.size;
@@ -112,12 +111,12 @@ export class SaleService {
 
     const whereClause: Prisma.SaleWhereInput = {};
 
-    // 💰 Cashier filter
+    // 💰 Cashier filter (Existing)
     if (dto.cashierId) {
       whereClause.cashierId = dto.cashierId;
     }
 
-    // 💵 Total range filter
+    // 💵 Total range filter (Existing)
     if (dto.minTotal !== undefined || dto.maxTotal !== undefined) {
       whereClause.total = {
         ...(dto.minTotal !== undefined ? { gte: dto.minTotal } : {}),
@@ -125,7 +124,7 @@ export class SaleService {
       };
     }
 
-    // 🗓️ Date filtering
+    // 🗓️ Date filtering (Existing)
     if (dto.filterBy) {
       let gte: Date | undefined = undefined;
       let lte: Date | undefined = undefined;
@@ -182,12 +181,14 @@ export class SaleService {
       }
     }
 
-    const [sales, totalElements, total] = await this.prisma.$transaction([
+    // 1. Fetch sales and total counts using the filter
+    const [sales, totalElements, totalAll] = await this.prisma.$transaction([
       this.prisma.sale.findMany({
         take: size,
         skip,
         where: whereClause,
         include: {
+          // Must include 'product' to access 'import_price' for profit calculation
           items: { include: { product: true } },
           paymentType: true,
           cashier: {
@@ -198,22 +199,76 @@ export class SaleService {
           [dto.sortBy]: dto.sortDirection,
         },
       }),
-      this.prisma.sale.count({ where: whereClause }),
-      this.prisma.sale.count(),
+      this.prisma.sale.count({ where: whereClause }), // totalElements (filtered)
+      this.prisma.sale.count(), // totalAll (unfiltered)
     ]);
+
+    // 2. Aggregate sales statistics using the same filter
+    const aggregates = await this.prisma.sale.aggregate({
+      _sum: {
+        total: true,
+      },
+      _count: {
+        id: true,
+      },
+      where: whereClause,
+    });
+
+    const totalRevenue = aggregates._sum.total || 0;
+    const totalTransactions = aggregates._count.id;
+
+    // 3. Calculate Profit and Revenue for each sale and total profit
+    let totalProfit = 0;
+
+    const salesWithProfit = sales.map((sale) => {
+      let saleCost = 0;
+
+      // Calculate the cost of goods sold (COGS) for the sale
+      for (const item of sale.items) {
+        // Use optional chaining for safety in case product is null/undefined
+        const importPrice =
+          item.product?.import_price || item.product?.price || 0;
+        saleCost += importPrice * item.quantity;
+      }
+
+      // Revenue for a sale is the total amount collected from the customer
+      const saleRevenue = sale.total;
+      const saleProfit = saleRevenue - saleCost;
+
+      totalProfit += saleProfit;
+
+      // Return the sale object with the new profit and revenue fields
+      return {
+        ...sale,
+        // Add 'revenue' which is the same as 'total' but for clarity
+        revenue: saleRevenue,
+        profit: saleProfit,
+      };
+    });
+
+    const totalSales = totalElements; // Same as totalTransactions (filtered count)
 
     const totalPages = Math.ceil(totalElements / size);
     const hasNextPage = page < totalPages;
 
+    // 4. Update the return object
     return {
       page,
       size,
       totalPages,
-      totalElements,
-      total,
-      elements: sales.length,
+      totalElements, // Count of sales under the current filter
+      total: totalAll, // Unfiltered total count of all sales
+      elements: salesWithProfit.length,
       nextPage: hasNextPage ? page + 1 : null,
-      results: sales,
+
+      // Aggregates for the current filter
+      totalSales: totalSales, // Total count of sales (same as totalElements)
+      totalTransactions: totalTransactions, // Total count of transactions (same as totalElements)
+      totalRevenue: totalRevenue, // Sum of all 'total' fields (Sales amount)
+      totalProfit: totalProfit, // Calculated total profit for filtered sales
+
+      // The list of sales, now including 'revenue' and 'profit' for each one
+      results: salesWithProfit,
     };
   }
 
